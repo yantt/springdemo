@@ -1,7 +1,12 @@
 package com.zwtxsy.entity.vo;
 
-public class User {
+import java.io.Serializable;
 
+public class User implements Serializable {
+
+	private static final long serialVersionUID = -3450064362986273896L;
+	
+	
 	private Integer id;
 	
 	private String userName;

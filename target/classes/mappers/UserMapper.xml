@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
  <mapper namespace="com.zwtxsy.mapper.UserMapper">
+   <cache type="com.zwtxsy.redis.cache.RedisCache"/>
  
+    <insert id="insertOneUser">
+          insert into ly_user (id,userName,accountName) values(6,'ssss','ddddd')
+    </insert>
     <select id="selectOneUser" resultType="com.zwtxsy.entity.vo.User">
          select id ,userName,accountName
          from ly_user where id=1
     </select>
- 
+    <select id="selectUserName" resultType="java.lang.String">
+        select userName from ly_user where id=1
+    
+    </select>
+    <update id="updateOneUser">
+           update ly_user set deletestatus=1
+           where id=1
+    </update>
  
  </mapper>

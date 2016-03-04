@@ -2,6 +2,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"  
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
     xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:p="http://www.springframework.org/schema/p"  
     xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
     xsi:schemaLocation="http://www.springframework.org/schema/beans  
             http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -9,12 +11,15 @@
             http://www.springframework.org/schema/context/spring-context.xsd
             http://mybatis.org/schema/mybatis-spring
             http://mybatis.org/schema/mybatis-spring.xsd
+            http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx.xsd
             ">
    
     <bean id="configProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">
 			<list>
 				<value>classpath:config/database.properties</value>
+				<value>classpath:config/redis.properties</value>
 			</list>
 		</property>
 		<property name="fileEncoding" value="UTF-8"/>
@@ -24,6 +29,29 @@
         <property name="properties" ref="configProperties" />
     </bean> 
      
+    <!-- redis数据源 -->
+    <bean id="poolConfig"  class="redis.clients.jedis.JedisPoolConfig">
+         <property name="maxIdle" value="${redis.maxIdle}"/>
+         <property name="maxTotal" value="${redis.maxTotal}"/>
+    	 <property name="maxWaitMillis" value="${redis.maxWait}"/>
+         <property name="testOnBorrow" value="${redis.testOnBorrow}"/>
+    </bean>
+    <!-- Spring-redis连接池管理工厂 -->
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"  
+   			 p:host-name="${redis.host}" 
+   			 p:port="${redis.port}"
+   			 p:password="${redis.pass}"  
+   			 p:pool-config-ref="poolConfig"
+   	/>  
+   	
+	<!-- 使用中间类解决RedisCache.jedisConnectionFactory的静态注入，从而使MyBatis实现第三方缓存 -->
+	<bean id="redisCacheTransfer" class="com.zwtxsy.redis.cache.RedisCacheTransfer">
+    	<property name="jedisConnectionFactory" ref="jedisConnectionFactory"/>
+	</bean> 
+     
+     
+    
+     
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="${jdbc.driverClass}" />
 		<property name="url" value="${jdbc.url}" />
@@ -31,9 +59,19 @@
 		<property name="password" value="${jdbc.password}" />
 	</bean> 
 	
+	
+	
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="mapperLocations" value="classpath:mappers/**/*.xml" />
 	</bean>
-         
+	
+	
+	<!-- 配置注解事务 -->
+    <tx:annotation-driven />
+	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+           
 </beans>  
