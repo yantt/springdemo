@@ -30,7 +30,6 @@ public class MyBatisCacheSecondTest
  
         String userName2 = userService.selectUserName();
         System.out.println(userName);
-
        
     }   
 
